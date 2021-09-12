@@ -5,3 +5,4 @@ go-elasticsearch-alerts
 vendor/
 __debug_bin
 main
+alerting.log

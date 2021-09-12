@@ -9,7 +9,7 @@
             { "term" : { "log_type" : { "value" : "warning" } } }
           ],
           "filter": [
-            { "range" : { "log_time" : { "gte" : "now-2m/m" } } }
+            { "range" : { "log_time" : { "gte" : "now-200m/m" } } }
           ]
         }
       },
@@ -30,6 +30,21 @@
       "type": "file",
       "config": {
         "file": "/dev/stdout"
+      }
+    },
+    {
+      "type": "slack",
+      "config" : {
+        "webhook": "https://hooks.slack.com/services/T02EHPE238R/B02322E55A0NKD/KCDq6triSPvCPEKGocgfhV1H",
+        "channel": "#alerting",
+        "text": "New alert!!!",
+        "emoji": ":hankey:"
+      }
+    },
+    {
+      "type": "file",
+      "config": {
+        "file": "./alerting.log"
       }
     }
   ]
