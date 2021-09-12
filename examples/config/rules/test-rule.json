@@ -7,6 +7,9 @@
         "bool": {
           "must": [
             { "term" : { "log_type" : { "value" : "warning" } } }
+          ],
+          "filter": [
+            { "range" : { "log_time" : { "gte" : "now-2m/m" } } }
           ]
         }
       },
@@ -17,7 +20,7 @@
   },
   "conditions": [
     {
-      "field": "hits.hits._source.system.log_value",
+      "field": "hits.hits._source.log_value",
       "quantifier": "any",
       "gt": 20
     }

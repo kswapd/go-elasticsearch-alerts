@@ -356,7 +356,7 @@ func (q *QueryHandler) Run( // nolint: gocyclo, funlen, gocognit
 // enables searching all state indices via this alias.
 func (q *QueryHandler) PutTemplate(ctx context.Context) error { // nolint: funlen
 	payload := fmt.Sprintf(`{
-  "index_patterns": ["%s-status-%s-*"],
+  "index_patterns": ["%s*"],
   "order": 0,
   "aliases": {%q:{}},
   "settings":{
@@ -409,17 +409,31 @@ func (q *QueryHandler) PutTemplate(ctx context.Context) error { // nolint: funle
       }
     }
   }
-}`, defaultStateIndexAlias, templateVersion, q.TemplateName())
 
+
+}`, defaultStateIndexAlias, defaultStateIndexAlias)
+
+	//to delete previous index:
 	resp, err := q.makeRequest(
 		ctx,
+		http.MethodDelete,
+		fmt.Sprintf("%s/%s*", q.esURL, defaultStateIndexAlias),
+		bytes.NewBufferString(payload),
+	)
+	if err != nil {
+		return xerrors.Errorf("Error deleting HTTP request: %v", err)
+	}
+
+	resp, err = q.makeRequest(
+		ctx,
 		http.MethodPut,
-		fmt.Sprintf("%s/_template/%s?include_type_name=true", q.esURL, q.TemplateName()),
+		fmt.Sprintf("%s/_template/%s?include_type_name=true", q.esURL, defaultStateIndexAlias),
 		bytes.NewBufferString(payload),
 	)
 	if err != nil {
 		return xerrors.Errorf("error making HTTP request: %v", err)
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
@@ -621,7 +635,7 @@ func (q *QueryHandler) readErrRespBody(resp *http.Response) string {
 // StateAliasURL returns the URL of the Elasticsearch
 // alias used to search the state indices.
 func (q *QueryHandler) StateAliasURL() string {
-	return fmt.Sprintf("%s/%s", q.esURL, q.TemplateName())
+	return fmt.Sprintf("%s/%s", q.esURL, defaultStateIndexAlias)
 }
 
 // StateIndexURL returns the URL of the Elasticsearch
@@ -629,16 +643,9 @@ func (q *QueryHandler) StateAliasURL() string {
 func (q *QueryHandler) StateIndexURL() string {
 	escaped := url.PathEscape(
 		fmt.Sprintf(
-			"<%s-status-%s-{now/d}>",
-			defaultStateIndexAlias,
-			templateVersion,
+			"<%s-%s>",
+			defaultStateIndexAlias, templateVersion,
 		),
 	)
 	return fmt.Sprintf("%s/%s", q.esURL, escaped)
-}
-
-// TemplateName returns the name of the Elasticsearch
-// template used to search against all state indices.
-func (q *QueryHandler) TemplateName() string {
-	return fmt.Sprintf("%s-%s", defaultStateIndexAlias, templateVersion)
 }

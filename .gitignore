@@ -3,3 +3,5 @@ src
 .vscode
 go-elasticsearch-alerts
 vendor/
+__debug_bin
+main
