@@ -1,36 +1,25 @@
 {
-  "name": "Example Error",
-  "index": "test-index",
+  "name": "alarm_test",
+  "index": "alarm_test",
   "schedule": "@every 2m",
   "body": {
-    "query": {
-      "bool": {
-        "must": [
-          { "term" : { "source" : { "value" : "/var/log/system.log" } } }
-        ],
-        "filter": [
-          { "range" : { "@timestamp" : { "gte" : "now-2m/m" } } }
-        ]
-      }
-    },
-    "aggregations": {
-      "hostname": {
-        "terms": {
-          "field": "system.syslog.hostname",
-          "min_doc_count": 1
+      "query": {
+        "bool": {
+          "must": [
+            { "term" : { "log_type" : { "value" : "warning" } } }
+          ]
         }
-      }
-    },
-    "size": 20,
-    "sort": [
-      { "@timestamp": "desc" }
-    ]
+      },
+      "size": 20,
+      "sort": [
+        { "log_time": "desc" }
+      ]
   },
   "conditions": [
     {
-      "field": "hits.hits._source.system.syslog.queue_size.value",
+      "field": "hits.hits._source.system.log_value",
       "quantifier": "any",
-      "gt": 50
+      "gt": 20
     }
   ],
   "outputs": [

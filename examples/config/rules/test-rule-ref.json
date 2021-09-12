@@ -1,0 +1,44 @@
+{
+  "name": "alarm_test",
+  "index": "alarm_test",
+  "schedule": "@every 2m",
+  "body": {
+    "query": {
+      "bool": {
+        "must": [
+          { "term" : { "source" : { "value" : "/var/log/system.log" } } }
+        ],
+        "filter": [
+          { "range" : { "@timestamp" : { "gte" : "now-2m/m" } } }
+        ]
+      }
+    },
+    "aggregations": {
+      "hostname": {
+        "terms": {
+          "field": "system.syslog.hostname",
+          "min_doc_count": 1
+        }
+      }
+    },
+    "size": 20,
+    "sort": [
+      { "@timestamp": "desc" }
+    ]
+  },
+  "conditions": [
+    {
+      "field": "hits.hits._source.system.syslog.queue_size.value",
+      "quantifier": "any",
+      "gt": 50
+    }
+  ],
+  "outputs": [
+    {
+      "type": "file",
+      "config": {
+        "file": "/dev/stdout"
+      }
+    }
+  ]
+}
